@@ -1,0 +1,30 @@
+# Local Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter temporary files
+.ipynb_checkpoints/
+
+# Raw and downloaded research data
+# Keep only the directory placeholder; never commit local datasets.
+data/*
+!data/.gitkeep
+data/**/*.csv
+data/**/*.json
+data/**/*.parquet
+data/**/*.pkl
+data/**/*.pickle
+
+# Generated dashboard data and embedded runtime bundles
+dashboard/data/*
+dashboard/embed_*.js
+
+# Local secrets and runtime files
+.env
+.env.*
+*.log

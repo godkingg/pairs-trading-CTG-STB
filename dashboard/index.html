@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTG · STB — Pairs Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="vendor_chart.js"></script>
+<script src="embed_price_data.js"></script>
+<style>
+  :root{
+    --bg:#0A0D12; --panel:#12161D; --panel-2:#161B23; --border:#1F2530;
+    --text:#E7EAEE; --muted:#6B7480; --muted-2:#8891A0;
+    --up:#E5484D;      /* VN convention: TĂNG = ĐỎ */
+    --down:#33C481;    /* VN convention: GIẢM = XANH LÁ */
+    --ref:#F0B90B;      /* Tham chiếu = VÀNG */
+    --accent:#3FD0C9;   /* Dynamic / Kalman */
+    --accent-2:#F0B90B; /* Static / reference */
+    --long:#33C481; --short:#E5484D; --flat:#6B7480;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---- Ticker tape (signature element) ---- */
+  .ticker-wrap{
+    background:#0D1117; border-bottom:1px solid var(--border);
+    overflow:hidden; white-space:nowrap; padding:9px 0;
+  }
+  .ticker{
+    display:inline-block; padding-left:100%;
+    animation:scroll-left 32s linear infinite;
+  }
+  .ticker span{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px;
+    margin-right:38px; color:var(--muted-2);
+  }
+  .ticker b{color:var(--text); font-weight:600;}
+  .ticker .up{color:var(--up); font-weight:600;}
+  .ticker .down{color:var(--down); font-weight:600;}
+  @keyframes scroll-left{ 0%{transform:translateX(0);} 100%{transform:translateX(-100%);} }
+
+  /* ---- Header ---- */
+  header{
+    padding:28px 32px 20px; border-bottom:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;
+  }
+  .title-block h1{
+    font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .title-block h1 .sep{color:var(--muted); font-weight:500; margin:0 6px;}
+  .title-block p{color:var(--muted-2); font-size:13.5px; margin-top:6px; max-width:640px; line-height:1.5;}
+  nav a{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--muted-2);
+    text-decoration:none; border:1px solid var(--border); padding:8px 14px;
+    border-radius:3px; transition:.15s;
+  }
+  nav a:hover{border-color:var(--accent); color:var(--accent);}
+
+  .demo-banner{
+    margin:16px 32px 0; padding:10px 16px; background:rgba(240,185,11,0.08);
+    border:1px solid rgba(240,185,11,0.35); border-radius:4px;
+    font-size:12px; color:#D9AA3E; font-family:'JetBrains Mono',monospace; line-height:1.6;
+  }
+
+  main{padding:20px 32px 48px; display:grid; grid-template-columns:1fr 300px; gap:20px;}
+  @media(max-width:980px){ main{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    padding:18px 20px; margin-bottom:20px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.06em; color:var(--muted-2);
+    margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .panel-title .badge{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:500;
+    padding:2px 8px; border-radius:10px; text-transform:none; letter-spacing:0;
+  }
+  .badge.dynamic{background:rgba(63,208,201,.14); color:var(--accent);}
+  .badge.static{background:rgba(240,185,11,.14); color:var(--accent-2);}
+
+  canvas{max-width:100%;}
+
+  /* Sidebar */
+  .stat-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .k{color:var(--muted-2);}
+  .stat-row .v{font-family:'JetBrains Mono',monospace; font-weight:600;}
+
+  .position-flag{
+    display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace;
+    font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:4px; letter-spacing:0.03em;
+  }
+  .position-flag.dot{width:7px; height:7px; border-radius:50%; display:inline-block;}
+  .pf-flat{background:rgba(107,116,128,.15); color:var(--flat);}
+  .pf-long{background:rgba(51,196,129,.15); color:var(--long);}
+  .pf-short{background:rgba(229,72,77,.15); color:var(--short);}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{
+    text-align:left; font-family:'JetBrains Mono',monospace; font-weight:500; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  td{padding:9px 0; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace;}
+  tr:last-child td{border-bottom:none;}
+  .side-mua{color:var(--down);} /* mua thường ám chỉ kỳ vọng tăng => hiển thị theo hướng lệnh, không phải giá */
+  .side-ban{color:var(--up);}
+
+  .marker-log{max-height:230px; overflow-y:auto;}
+  .marker-item{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); font-size:12px;}
+  .marker-item:last-child{border-bottom:none;}
+  .marker-tag{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:10.5px; padding:2px 7px; border-radius:3px;}
+  .tag-long_entry{background:rgba(51,196,129,.15); color:var(--long);}
+  .tag-short_entry{background:rgba(229,72,77,.15); color:var(--short);}
+  .tag-exit{background:rgba(107,116,128,.15); color:var(--flat);}
+
+  footer{
+    padding:18px 32px 32px; color:var(--muted); font-size:11.5px; font-family:'JetBrains Mono',monospace;
+    border-top:1px solid var(--border); line-height:1.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap"><div class="ticker" id="tickerTape"></div></div>
+
+<header>
+  <div class="title-block">
+    <h1>CTG <span class="sep">·</span> STB <span class="sep">—</span> Pairs Terminal</h1>
+    <p>Mean-reversion trên spread giữa CTG và STB (cặp có p-value cointegration thấp nhất trong universe 11 mã ngân hàng, Ngày 11). Hedge ratio động ước lượng bằng Kalman filter (Ngày 12).</p>
+  </div>
+  <nav><a href="backtest.html">→ Kết quả Backtest</a></nav>
+</header>
+
+<div class="demo-banner" id="demoBanner"></div>
+
+<main>
+  <div>
+    <div class="panel">
+      <div class="panel-title">
+        <span>Giá CTG / STB (normalized)</span>
+      </div>
+      <canvas id="priceChart" height="110"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span>Spread &amp; Z-score — điểm vào / ra lệnh</span>
+        <span class="badge dynamic">entry ±1.5σ · exit ±0.5σ</span>
+      </div>
+      <canvas id="spreadChart" height="130"></canvas>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <div class="panel-title"><span>Vị thế hiện tại</span></div>
+      <div id="positionFlag" style="margin-bottom:14px;"></div>
+      <div class="stat-row"><span class="k">Z-score</span><span class="v" id="statZ">—</span></div>
+      <div class="stat-row"><span class="k">Hedge ratio (β)</span><span class="v" id="statBeta">—</span></div>
+      <div class="stat-row"><span class="k">Vốn phân bổ</span><span class="v" id="statCapital">—</span></div>
+      <div class="stat-row"><span class="k">As of</span><span class="v" id="statAsOf">—</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>Bảng tỷ trọng (2 chân lệnh)</span></div>
+      <table>
+        <thead><tr><th>Mã</th><th>Lệnh</th><th>Giá</th><th>Tỷ trọng</th></tr></thead>
+        <tbody id="weightTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>Cointegration screen</span></div>
+      <div class="stat-row"><span class="k">Số cặp test</span><span class="v" id="statNPairs">—</span></div>
+      <div class="stat-row"><span class="k">Sig. (raw, α=.05)</span><span class="v" id="statSigRaw">—</span></div>
+      <div class="stat-row"><span class="k">Sig. (Bonferroni)</span><span class="v" id="statSigBonf">—</span></div>
+      <div class="stat-row"><span class="k">Sig. (BH/FDR)</span><span class="v" id="statSigBH">—</span></div>
+      <div class="stat-row"><span class="k">Half-life spread</span><span class="v" id="statHalfLife">—</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span>Log tín hiệu gần nhất</span></div>
+      <div class="marker-log" id="markerLog"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  ⚠ Terminal nghiên cứu nội bộ — không phải khuyến nghị đầu tư. Xem <b>reports/research_note.md</b> và mục
+  "Hạn chế &amp; Rủi ro" trong README trước khi diễn giải bất kỳ con số nào ở đây.
+  Nguồn dữ liệu backtest: notebooks/day11–day13 (số liệu thật). Chuỗi giá ở panel trên là dữ liệu minh họa — xem banner phía trên.
+</footer>
+
+<script>
+const D = PRICE_DATA;
+const series = D.series;
+const wt = D.weight_table;
+
+// ---- Demo banner ----
+document.getElementById('demoBanner').textContent = "⚠ " + D.meta.note;
+
+// ---- Ticker tape ----
+const last = series[series.length - 1];
+const prev = series[series.length - 2];
+const ctgChg = ((last.ctg - prev.ctg) / prev.ctg * 100).toFixed(2);
+const stbChg = ((last.stb - prev.stb) / prev.stb * 100).toFixed(2);
+const tickerItems = [
+  `<span>CTG <b class="${ctgChg>=0?'up':'down'}">${last.ctg} (${ctgChg>=0?'+':''}${ctgChg}%)</b></span>`,
+  `<span>STB <b class="${stbChg>=0?'up':'down'}">${last.stb} (${stbChg>=0?'+':''}${stbChg}%)</b></span>`,
+  `<span>SPREAD <b>${last.spread}</b></span>`,
+  `<span>Z-SCORE <b>${last.zscore ?? '—'}</b></span>`,
+  `<span>β (hedge ratio) <b>${wt.hedge_ratio_beta}</b></span>`,
+  `<span>VỊ THẾ <b>${wt.current_position}</b></span>`,
+];
+document.getElementById('tickerTape').innerHTML = tickerItems.join('') + tickerItems.join('');
+
+// ---- Position flag ----
+const posClass = {"LONG SPREAD":"pf-long","SHORT SPREAD":"pf-short","FLAT":"pf-flat"}[wt.current_position];
+document.getElementById('positionFlag').innerHTML =
+  `<span class="position-flag ${posClass}"><span class="position-flag dot"></span>${wt.current_position}</span>`;
+document.getElementById('statZ').textContent = wt.current_zscore;
+document.getElementById('statBeta').textContent = wt.hedge_ratio_beta;
+document.getElementById('statCapital').textContent = (wt.capital_allocated_vnd/1e6).toLocaleString('vi-VN') + " tr VND";
+document.getElementById('statAsOf').textContent = wt.as_of;
+
+// ---- Weight table ----
+document.getElementById('weightTableBody').innerHTML = wt.legs.map(leg => `
+  <tr>
+    <td>${leg.symbol}</td>
+    <td class="${leg.side==='MUA'?'side-mua':(leg.side==='BÁN'?'side-ban':'')}">${leg.side}</td>
+    <td>${leg.price}</td>
+    <td>${leg.weight_pct.toFixed(1)}%</td>
+  </tr>`).join('');
+
+// ---- Cointegration panel ----
+document.getElementById('statNPairs').textContent = COINT_DATA.n_pairs_tested;
+document.getElementById('statSigRaw').textContent = COINT_DATA.n_significant_raw + " / " + COINT_DATA.n_pairs_tested;
+document.getElementById('statSigBonf').textContent = COINT_DATA.n_significant_bonferroni + " / " + COINT_DATA.n_pairs_tested;
+document.getElementById('statSigBH').textContent = COINT_DATA.n_significant_bh + " / " + COINT_DATA.n_pairs_tested;
+document.getElementById('statHalfLife').textContent = COINT_DATA.half_life_days + " ngày";
+
+// ---- Marker log ----
+const recentMarkers = D.markers.slice(-12).reverse();
+const tagLabel = {long_entry:"LONG", short_entry:"SHORT", exit:"EXIT"};
+document.getElementById('markerLog').innerHTML = recentMarkers.map(m => `
+  <div class="marker-item">
+    <span>${m.date}</span>
+    <span class="marker-tag tag-${m.type}">${tagLabel[m.type]}</span>
+    <span class="mono">z=${m.z ?? '—'}</span>
+  </div>`).join('');
+
+// ---- Charts — bọc try/catch để lỗi Chart.js (nếu có) KHÔNG làm hỏng phần text/table đã render ở trên ----
+try {
+  if (typeof Chart === 'undefined') throw new Error('Chart.js chưa load được (vendor_chart.js).');
+
+  Chart.defaults.color = '#6B7480';
+  Chart.defaults.font.family = "'JetBrains Mono', monospace";
+  Chart.defaults.font.size = 10.5;
+
+  const dates = series.map(d => d.date);
+  const ctgNorm = series.map(d => d.ctg / series[0].ctg);
+  const stbNorm = series.map(d => d.stb / series[0].stb);
+
+  new Chart(document.getElementById('priceChart'), {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        {label:'CTG', data: ctgNorm, borderColor:'#F0B90B', borderWidth:1.6, pointRadius:0, tension:0.15},
+        {label:'STB', data: stbNorm, borderColor:'#3FD0C9', borderWidth:1.6, pointRadius:0, tension:0.15},
+      ]
+    },
+    options: {
+      responsive:true,
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{labels:{boxWidth:10, color:'#8891A0'}}},
+      scales:{
+        x:{grid:{color:'#1F2530'}, ticks:{maxTicksLimit:8}},
+        y:{grid:{color:'#1F2530'}, title:{display:true,text:'Normalized (=1 tại ngày đầu)', color:'#6B7480'}}
+      }
+    }
+  });
+
+  const zVals = series.map(d => d.zscore);
+
+  new Chart(document.getElementById('spreadChart'), {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        {label:'Z-score', data: zVals, borderColor:'#3FD0C9', borderWidth:1.5, pointRadius:0, tension:0.1, yAxisID:'y'},
+        {label:'+entry (1.5σ)', data: dates.map(()=>1.5), borderColor:'rgba(229,72,77,.5)', borderDash:[4,4], pointRadius:0, borderWidth:1, yAxisID:'y'},
+        {label:'-entry (1.5σ)', data: dates.map(()=>-1.5), borderColor:'rgba(51,196,129,.5)', borderDash:[4,4], pointRadius:0, borderWidth:1, yAxisID:'y'},
+        {label:'exit band', data: dates.map(()=>0.5), borderColor:'rgba(107,116,128,.4)', borderDash:[2,3], pointRadius:0, borderWidth:1, yAxisID:'y'},
+        {label:'exit band -', data: dates.map(()=>-0.5), borderColor:'rgba(107,116,128,.4)', borderDash:[2,3], pointRadius:0, borderWidth:1, yAxisID:'y'},
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{labels:{boxWidth:10, filter:(item)=> !item.text.includes('exit band -') , color:'#8891A0'}}},
+      scales:{
+        x:{grid:{color:'#1F2530'}, ticks:{maxTicksLimit:8}},
+        y:{grid:{color:'#1F2530'}, title:{display:true,text:'Z-score', color:'#6B7480'}}
+      }
+    }
+  });
+} catch (err) {
+  console.error('Lỗi khi vẽ chart:', err);
+  ['priceChart', 'spreadChart'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentElement) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'color:#F0989C;font-family:JetBrains Mono,monospace;font-size:12px;padding:20px 0;';
+      msg.textContent = '⚠ Không vẽ được biểu đồ (' + err.message + '). Text/bảng phía trên vẫn đúng.';
+      el.parentElement.appendChild(msg);
+    }
+  });
+}
+</script>
+</body>
+</html>

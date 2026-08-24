@@ -1,0 +1,10 @@
+vnstock>=4.0.7
+pandas>=2.2
+numpy>=2.0
+statsmodels>=0.14
+pykalman>=0.11
+scipy>=1.16
+matplotlib>=3.8
+pytest>=8.0
+requests>=2.31        # dùng bởi src/cafef_provider.py (nguồn dữ liệu dự phòng)
+python-dateutil>=2.9  # dùng bởi src/cafef_provider.py

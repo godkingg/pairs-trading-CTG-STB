@@ -1,0 +1,2 @@
+Thư mục này để trống có chủ đích — dữ liệu giá được tải trực tiếp qua
+src/data_loader.py (vnstock) mỗi lần chạy, không commit raw data vào repo.
