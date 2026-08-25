@@ -42,14 +42,14 @@ Purged K-Fold CV (chọn entry_z/exit_z) + Walk-forward (29 window, refit 60d/te
 
 ### 4.1 Cointegration screening (Ngày 11)
 
-| Metric | Giá trị |
-|---|---|
-| Số cặp test đồng thời | 55 |
-| Cặp p-value thấp nhất | CTG-STB (p = 0.004069) |
-| Significant (raw, α=0.05) | 5 / 55 |
-| Significant (Bonferroni) | **0 / 55** |
-| Significant (BH/FDR) | **0 / 55** |
-| p-adj CTG-STB (Bonferroni / BH) | 0.2238 / 0.2238 |
+| Metric                          | Giá trị                |
+| ------------------------------- | ---------------------- |
+| Số cặp test đồng thời           | 55                     |
+| Cặp p-value thấp nhất           | CTG-STB (p = 0.004069) |
+| Significant (raw, α=0.05)       | 5 / 55                 |
+| Significant (Bonferroni)        | **0 / 55**             |
+| Significant (BH/FDR)            | **0 / 55**             |
+| p-adj CTG-STB (Bonferroni / BH) | 0.2238 / 0.2238        |
 
 **CTG-STB KHÔNG sống sót qua bất kỳ phép điều chỉnh multiple-testing nào.**
 Tiếp tục nghiên cứu cặp này chỉ mang tính minh họa phương pháp, không phải
@@ -57,12 +57,12 @@ bằng chứng thống kê vững chắc về mối quan hệ cointegrated thậ
 
 ### 4.2 Static OLS vs Dynamic Kalman (Ngày 12)
 
-| Metric | Static (OLS) | Dynamic (Kalman) |
-|---|---|---|
-| β (hedge ratio) | 0.4595 (cố định) | mean 0.6803, std 0.0568 (dao động 0.57–0.79) |
-| ADF spread p-value | 0.000755 | 0.000000 |
-| Sharpe (IS, chưa phí) | 0.873 | 3.304 |
-| Sharpe (OOS, chưa phí) | 2.423 | 4.082 |
+| Metric                 | Static (OLS)     | Dynamic (Kalman)                             |
+| ---------------------- | ---------------- | -------------------------------------------- |
+| β (hedge ratio)        | 0.4595 (cố định) | mean 0.6803, std 0.0568 (dao động 0.57–0.79) |
+| ADF spread p-value     | 0.000755         | 0.000000                                     |
+| Sharpe (IS, chưa phí)  | 0.873            | 3.304                                        |
+| Sharpe (OOS, chưa phí) | 2.423            | 4.082                                        |
 
 Beta động lệch khá xa khỏi beta tĩnh (CV=8.35%, "thay đổi nhẹ" theo ngưỡng đã
 định), nhưng đủ lớn để nghi ngờ đây là do Kalman đang bám theo một xu hướng
@@ -71,23 +71,23 @@ cố định (xem mục 5).
 
 ### 4.3 Sau transaction cost (Ngày 13)
 
-| Segment | Sharpe gross | Sharpe net | Δ | N trades |
-|---|---|---|---|---|
-| Static-IS | 0.771 | **0.071** | −91% | 61 |
-| Dynamic-IS | 3.307 | **1.678** | −49% | 92 |
-| Static-OOS | 2.423 | **1.832** | −24% | 23 |
-| Dynamic-OOS | 4.095 | **2.801** | −32% | 27 |
+| Segment     | Sharpe gross | Sharpe net | Δ    | N trades |
+| ----------- | ------------ | ---------- | ---- | -------- |
+| Static-IS   | 0.771        | **0.071**  | −91% | 61       |
+| Dynamic-IS  | 3.307        | **1.678**  | −49% | 92       |
+| Static-OOS  | 2.423        | **1.832**  | −24% | 23       |
+| Dynamic-OOS | 4.095        | **2.801**  | −32% | 27       |
 
 Giả định: phí 0.15% + slippage 0.08% mỗi lần đổi vị thế (round-trip), tính
 trên notional ước lượng = giá_y + |β|·giá_x.
 
 ### 4.4 Purged K-Fold CV — chọn entry_z/exit_z
 
-| entry_z | exit_z | mean Sharpe (CV, net phí) | std |
-|---|---|---|---|
-| **1.0** | **0.25** | **0.299** | 1.046 |
-| 1.5 | 0.50 (chọn tay ở Ngày 11-12) | 0.196 | 1.604 |
-| 1.5 | 0.75 | −0.019 | 1.612 |
+| entry_z | exit_z                       | mean Sharpe (CV, net phí) | std   |
+| ------- | ---------------------------- | ------------------------- | ----- |
+| **1.0** | **0.25**                     | **0.299**                 | 1.046 |
+| 1.5     | 0.50 (chọn tay ở Ngày 11-12) | 0.196                     | 1.604 |
+| 1.5     | 0.75                         | −0.019                    | 1.612 |
 
 Tham số "chọn tay" ban đầu (1.5 / 0.5) không phải tham số tối ưu theo CV —
 chênh lệch không quá lớn, nhưng xác nhận rủi ro data snooping khi chọn tham
@@ -95,14 +95,28 @@ số bằng mắt trên cùng 1 tập dữ liệu.
 
 ### 4.5 Walk-forward (29 window, refit mỗi 60 ngày, test 20 ngày)
 
-| Metric | Static | Dynamic (Kalman) |
-|---|---|---|
-| Sharpe mean ± std | −0.062 ± 3.485 | **1.626 ± 1.654** |
-| % window P&L dương | 48% | **86%** |
+**Đây là bằng chứng thực nghiệm mạnh nhất trong toàn bộ project** — khác với
+4.2-4.4 vốn chỉ dựa trên 1 lần chia IS/OOS, walk-forward đánh giá độ ổn định
+qua 29 giai đoạn refit độc lập, giảm đáng kể rủi ro kết quả chỉ "đẹp" nhờ may
+mắn ở một mốc chia cụ thể.
+
+| Metric             | Static         | Dynamic (Kalman)  |
+| ------------------ | -------------- | ----------------- |
+| Sharpe mean ± std  | −0.062 ± 3.485 | **1.626 ± 1.654** |
+| % window P&L dương | 48%            | **86%**           |
 
 Static không ổn định qua các regime (Sharpe đổi dấu liên tục, std rất cao).
 Dynamic ổn định hơn rõ rệt về mặt thống kê mô tả, nhưng mẫu 29 window không
 lớn và cùng dựa trên 1 cặp cổ phiếu duy nhất chưa qua được kiểm định ở 4.1.
+
+⚠️ **Bằng chứng "mạnh nhất" ở đây là mạnh nhất SO VỚI PHẦN CÒN LẠI CỦA PROJECT,
+không phải bằng chứng đã đủ để kết luận.** Giả thuyết B ở mục 5 (Kalman đang
+"bắt regime" hơn là mean-reversion thật) vẫn là lời giải thích cạnh tranh
+CHƯA bị loại trừ bởi kết quả walk-forward này — 86% window dương cũng hoàn
+toàn tương thích với việc Kalman đang theo kịp một xu hướng dài hạn nhất
+quán trong suốt giai đoạn 2024-2026, chứ không nhất thiết chứng minh nó bắt
+đúng cơ chế mean-reversion. Xem mục 5 để biết vì sao 2 giả thuyết này chưa
+thể phân biệt được bằng dữ liệu hiện có.
 
 ## 5. Diễn giải & Rủi ro (Observation / Hypothesis / Evidence / Conclusion)
 

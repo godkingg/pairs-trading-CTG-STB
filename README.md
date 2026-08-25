@@ -45,16 +45,17 @@ Notebook gốc theo từng ngày: [`notebooks/`](notebooks/).
 
 ## Kết quả chính
 
-| Metric | Static (OLS) | Dynamic (Kalman) |
-|---|---|---|
-| Sharpe Ratio (IS, **sau phí**) | 0.071 | 1.678 |
-| Sharpe Ratio (OOS, **sau phí**) | 1.832 | 2.801 |
-| Sharpe giảm do phí (IS) | −91% (0.771→0.071) | −49% (3.307→1.678) |
-| Walk-forward Sharpe (mean±std, 29 window) | −0.06 ± 3.49 | 1.63 ± 1.65 |
-| Walk-forward % window P&L dương | 48% | 86% |
-| Max drawdown (walk-forward, đơn vị giá) | xem `reports/research_note.md` | xem `reports/research_note.md` |
-| Win Rate | tính trong `src/risk.win_rate()` | tính trong `src/risk.win_rate()` |
-| Cointegration p-value (raw / Bonferroni-adj) | 0.0041 / **0.2238** | — |
+| Metric                                       | Static (OLS)                     | Dynamic (Kalman)                 |
+| -------------------------------------------- | -------------------------------- | -------------------------------- |
+| Sharpe Ratio (IS, **sau phí**)               | 0.071                            | 1.678                            |
+| Sharpe Ratio (OOS, **sau phí**)              | 1.832                            | 2.801                            |
+| Sharpe giảm do phí (IS)                      | −91% (0.771→0.071)               | −49% (3.307→1.678)               |
+| N trades — số lần đổi vị thế (IS / OOS)      | 61 / 23                          | 92 / 27                          |
+| Walk-forward Sharpe (mean±std, 29 window)    | −0.06 ± 3.49                     | 1.63 ± 1.65                      |
+| Walk-forward % window P&L dương              | 48%                              | 86%                              |
+| Max drawdown (walk-forward, đơn vị giá)      | xem `reports/research_note.md`   | xem `reports/research_note.md`   |
+| Win Rate                                     | tính trong `src/risk.win_rate()` | tính trong `src/risk.win_rate()` |
+| Cointegration p-value (raw / Bonferroni-adj) | 0.0041 / **0.2238**              | —                                |
 
 ## Hạn chế & Rủi ro
 
@@ -95,9 +96,9 @@ Notebook gốc theo từng ngày: [`notebooks/`](notebooks/).
 Ngoài pipeline nghiên cứu, project có 2 trang dashboard tĩnh (mở trực tiếp
 bằng trình duyệt, không cần server):
 
-| File | Nội dung |
-|---|---|
-| `dashboard/index.html` | Terminal: biểu đồ giá CTG/STB, spread + z-score với dải entry/exit, log tín hiệu vào/ra lệnh gần nhất, bảng tỷ trọng 2 chân lệnh theo hedge ratio hiện tại. Dữ liệu giá là **minh họa** (xem cảnh báo trong banner của trang). |
+| File                      | Nội dung                                                                                                                                                                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboard/index.html`    | Terminal: biểu đồ giá CTG/STB, spread + z-score với dải entry/exit, log tín hiệu vào/ra lệnh gần nhất, bảng tỷ trọng 2 chân lệnh theo hedge ratio hiện tại. Dữ liệu giá là **minh họa** (xem cảnh báo trong banner của trang).           |
 | `dashboard/backtest.html` | Kết quả backtest: Sharpe gross/net theo từng segment, walk-forward Sharpe & cumulative P&L qua 29 window, bảng cointegration + multiple-testing, và khối "Hạn chế & Rủi ro" hiển thị ngay trên trang. Dữ liệu ở đây là **số liệu thật**. |
 
 ## Cách chạy
