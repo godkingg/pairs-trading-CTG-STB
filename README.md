@@ -27,7 +27,7 @@ Data (11 mã, vnstock)
   ↓
 Engle-Granger cointegration test cho TẤT CẢ 55 cặp
   ↓
-Multiple-testing correction (Bonferroni + BH/FDR)   ← CTG-STB KHÔNG qua được
+Multiple-testing correction (Bonferroni + BH/FDR) 
   ↓
 Hedge ratio: Static OLS  &  Dynamic Kalman filter
   ↓
